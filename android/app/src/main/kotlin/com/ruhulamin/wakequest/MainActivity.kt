@@ -1,4 +1,4 @@
-package com.example.wakequest
+package com.ruhulamin.wakequest
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -13,7 +13,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val channelName = "com.example.wakequest/alarm_player"
+    private val channelName = "com.ruhulamin.wakequest/alarm_player"
     private var ringtone: Ringtone? = null
     private var vibrator: Vibrator? = null
 

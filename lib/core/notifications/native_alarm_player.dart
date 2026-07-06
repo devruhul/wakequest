@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 class NativeAlarmPlayer {
   NativeAlarmPlayer._();
 
-  static const _channel = MethodChannel('com.example.wakequest/alarm_player');
+  static const _channel = MethodChannel('com.ruhulamin.wakequest/alarm_player');
 
   static Future<void> start({required bool vibrate}) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
