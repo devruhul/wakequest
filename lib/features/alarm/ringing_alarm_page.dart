@@ -9,15 +9,23 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/models/alarm.dart';
+import '../../core/notifications/native_alarm_player.dart';
 import '../../core/state/app_controller.dart';
 
-class RingingAlarmPage extends ConsumerWidget {
+class RingingAlarmPage extends ConsumerStatefulWidget {
   const RingingAlarmPage({super.key, required this.alarmId});
   final String alarmId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final alarm = ref.watch(appControllerProvider).alarmById(alarmId);
+  ConsumerState<RingingAlarmPage> createState() => _RingingAlarmPageState();
+}
+
+class _RingingAlarmPageState extends ConsumerState<RingingAlarmPage> {
+  bool _started = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final alarm = ref.watch(appControllerProvider).alarmById(widget.alarmId);
     if (alarm == null) {
       return Scaffold(
         body: Center(
@@ -27,6 +35,10 @@ class RingingAlarmPage extends ConsumerWidget {
           ),
         ),
       );
+    }
+    if (!_started) {
+      _started = true;
+      NativeAlarmPlayer.start(vibrate: alarm.vibrate);
     }
     return PopScope(
       canPop: false,
@@ -63,15 +75,15 @@ class RingingAlarmPage extends ConsumerWidget {
                         MissionType.math => _MathMission(
                           difficulty: alarm.mathDifficulty,
                           target: alarm.mathQuestions,
-                          onComplete: () => _complete(context, ref),
+                          onComplete: () => _complete(context),
                         ),
                         MissionType.qr => _QrMission(
                           expected: alarm.qrValue!,
-                          onComplete: () => _complete(context, ref),
+                          onComplete: () => _complete(context),
                         ),
                         MissionType.walking => _WalkingMission(
                           target: alarm.stepGoal,
-                          onComplete: () => _complete(context, ref),
+                          onComplete: () => _complete(context),
                         ),
                       },
                     ),
@@ -92,8 +104,9 @@ class RingingAlarmPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _complete(BuildContext context, WidgetRef ref) async {
-    await ref.read(appControllerProvider).completeMission(alarmId);
+  Future<void> _complete(BuildContext context) async {
+    await NativeAlarmPlayer.stop();
+    await ref.read(appControllerProvider).completeMission(widget.alarmId);
     if (context.mounted) context.go('/');
   }
 }

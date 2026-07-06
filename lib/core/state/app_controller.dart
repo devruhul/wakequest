@@ -20,6 +20,7 @@ class AppController extends ChangeNotifier {
   List<Alarm> alarms = [];
   AppSettings settings = const AppSettings();
   WakeStatistics statistics = const WakeStatistics();
+  String? schedulingWarning;
 
   void _load() {
     final stored = _box.get('alarms') as List<dynamic>? ?? const [];
@@ -54,7 +55,15 @@ class AppController extends ChangeNotifier {
     }
     alarms.sort(_sortAlarms);
     await _persistAlarms();
-    await AlarmNotificationService.instance.schedule(alarm);
+    notifyListeners();
+    try {
+      await AlarmNotificationService.instance.schedule(alarm);
+      schedulingWarning = null;
+    } catch (error, stackTrace) {
+      debugPrint('WakeQuest scheduling failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      schedulingWarning = 'Alarm saved, but scheduling failed: $error';
+    }
     notifyListeners();
   }
 

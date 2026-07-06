@@ -314,7 +314,15 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
       flash: _flash,
     );
     await ref.read(appControllerProvider).saveAlarm(alarm);
-    if (mounted) context.pop();
+    if (mounted) {
+      final warning = ref.read(appControllerProvider).schedulingWarning;
+      if (warning != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(warning)));
+      }
+      context.pop();
+    }
   }
 
   Future<void> _delete() async {

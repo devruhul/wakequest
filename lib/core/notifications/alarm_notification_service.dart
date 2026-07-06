@@ -1,7 +1,6 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,6 +16,7 @@ class AlarmNotificationService {
   void Function(String alarmId)? onAlarmSelected;
 
   Future<void> initialize() async {
+    if (kIsWeb) return;
     tz.initializeTimeZones();
     try {
       final timezone = await FlutterTimezone.getLocalTimezone();
@@ -43,7 +43,7 @@ class AlarmNotificationService {
   }
 
   Future<void> requestPermissions() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     final android = plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -54,9 +54,22 @@ class AlarmNotificationService {
   }
 
   Future<void> schedule(Alarm alarm) async {
+    if (kIsWeb) return;
     await cancel(alarm.id);
     if (!alarm.enabled) return;
 
+    try {
+      await _scheduleWithMode(alarm, AndroidScheduleMode.alarmClock);
+    } on PlatformException catch (error) {
+      if (error.code != 'exact_alarms_not_permitted') rethrow;
+      await _scheduleWithMode(alarm, AndroidScheduleMode.inexactAllowWhileIdle);
+    }
+  }
+
+  Future<void> _scheduleWithMode(
+    Alarm alarm,
+    AndroidScheduleMode scheduleMode,
+  ) async {
     if (alarm.repeatDays.isEmpty) {
       final time = _nextOneOff(alarm);
       await plugin.zonedSchedule(
@@ -65,7 +78,7 @@ class AlarmNotificationService {
         body: 'Complete your ${_missionName(alarm.mission)} mission to dismiss',
         scheduledDate: time,
         notificationDetails: _detailsFor(alarm),
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        androidScheduleMode: scheduleMode,
         payload: alarm.id,
       );
       return;
@@ -78,7 +91,7 @@ class AlarmNotificationService {
         body: 'Complete your ${_missionName(alarm.mission)} mission to dismiss',
         scheduledDate: _nextWeekday(alarm, weekday),
         notificationDetails: _detailsFor(alarm),
-        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        androidScheduleMode: scheduleMode,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         payload: alarm.id,
       );
@@ -86,19 +99,23 @@ class AlarmNotificationService {
   }
 
   Future<void> cancel(String alarmId) async {
+    if (kIsWeb) return;
     await plugin.cancel(id: _notificationId(alarmId, 0));
     for (var day = 1; day <= 7; day++) {
       await plugin.cancel(id: _notificationId(alarmId, day));
     }
   }
 
-  Future<void> showTest(Alarm alarm) => plugin.show(
-    id: _notificationId(alarm.id, 9),
-    title: alarm.label,
-    body: 'Test alarm — tap to begin your mission',
-    notificationDetails: _detailsFor(alarm),
-    payload: alarm.id,
-  );
+  Future<void> showTest(Alarm alarm) async {
+    if (kIsWeb) return;
+    await plugin.show(
+      id: _notificationId(alarm.id, 9),
+      title: alarm.label,
+      body: 'Test alarm — tap to begin your mission',
+      notificationDetails: _detailsFor(alarm),
+      payload: alarm.id,
+    );
+  }
 
   NotificationDetails _detailsFor(Alarm alarm) => NotificationDetails(
     android: AndroidNotificationDetails(
