@@ -1,17 +1,44 @@
-# wakequest
+# WakeQuest
 
-A new Flutter project.
+WakeQuest is an offline-first Android alarm clock that requires a physical or
+mental mission before an alarm can be dismissed.
 
-## Getting Started
+## MVP features
 
-This project is a starting point for a Flutter application.
+- Multiple one-time or repeating alarms
+- Exact Android alarm scheduling and reboot recovery
+- Lock-screen/full-screen alarm experience
+- Math missions with three difficulty levels
+- Generated QR-code missions with camera verification
+- Walking missions using the device step counter
+- Local Hive persistence
+- Streaks, wake statistics, and achievements
+- Material 3 light/dark/system themes and 12/24-hour time
+- Permission and battery-reliability guidance
 
-A few resources to get you started if this is your first Flutter project:
+## Run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```sh
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Use a physical Android device to test exact alarms, full-screen intents, camera
+scanning, and step counting. Grant notification, exact-alarm, full-screen,
+camera, and activity-recognition permissions when requested.
+
+## Verify
+
+```sh
+flutter analyze
+flutter test
+flutter build apk --debug
+```
+
+The debug APK is written to `build/app/outputs/flutter-apk/app-debug.apk`.
+
+## Roadmap
+
+Authentication, Firebase sync, premium subscriptions, AI pose/photo missions,
+voice missions, widgets, and Wear OS support belong to later releases in the
+SRS. The current app deliberately implements the recommended version 1 MVP.
