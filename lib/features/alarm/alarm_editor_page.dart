@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/models/alarm.dart';
 import '../../core/notifications/alarm_notification_service.dart';
@@ -23,12 +22,12 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
   MissionType _mission = MissionType.math;
   MathDifficulty _difficulty = MathDifficulty.medium;
   int _questions = 5;
+  int _memoryDigits = 4;
   int _steps = 100;
   int _pushUps = 5;
   double _volume = 1;
   bool _vibrate = true;
   bool _flash = false;
-  String? _qrValue;
   Alarm? _existing;
 
   @override
@@ -48,12 +47,12 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
       _mission = alarm.mission;
       _difficulty = alarm.mathDifficulty;
       _questions = alarm.mathQuestions;
+      _memoryDigits = alarm.memoryDigits;
       _steps = alarm.stepGoal;
       _pushUps = alarm.pushUpGoal;
       _volume = alarm.volume;
       _vibrate = alarm.vibrate;
       _flash = alarm.flash;
-      _qrValue = alarm.qrValue;
     }
   }
 
@@ -141,7 +140,7 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
             children:
                 const [
                       (MissionType.math, Icons.calculate_rounded, 'Math'),
-                      (MissionType.qr, Icons.qr_code_rounded, 'QR'),
+                      (MissionType.memory, Icons.psychology_rounded, 'Memory'),
                       (
                         MissionType.walking,
                         Icons.directions_walk_rounded,
@@ -240,33 +239,43 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
         ),
       ],
     ),
-    MissionType.qr => Card(
+    MissionType.memory => Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_qrValue != null)
-              QrImageView(
-                data: _qrValue!,
-                size: 150,
-                backgroundColor: Colors.white,
-              )
-            else
-              const Icon(Icons.qr_code_2_rounded, size: 80),
-            const SizedBox(height: 12),
-            Text(
-              _qrValue == null
-                  ? 'Create a code, then place it away from your bed.'
-                  : 'Save or print this code and place it at your destination.',
-              textAlign: TextAlign.center,
+            const Row(
+              children: [
+                Icon(Icons.psychology_rounded),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Memory Code Mission',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'WakeQuest shows a short code for a few seconds, then hides it. '
+              'Type it back correctly to stop the alarm.',
             ),
             const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => setState(
-                () => _qrValue =
-                    'wakequest:${DateTime.now().microsecondsSinceEpoch}',
-              ),
-              child: Text(_qrValue == null ? 'Create QR code' : 'New code'),
+            DropdownButtonFormField<int>(
+              initialValue: _memoryDigits,
+              decoration: const InputDecoration(labelText: 'Code length'),
+              items: const [3, 4, 5, 6]
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text('$value digits'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => _memoryDigits = value ?? _memoryDigits),
             ),
           ],
         ),
@@ -339,14 +348,6 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
   }
 
   Future<void> _save() async {
-    if (_mission == MissionType.qr && _qrValue == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Create a QR code for this mission first.'),
-        ),
-      );
-      return;
-    }
     await AlarmNotificationService.instance.requestPermissions();
     final now = DateTime.now();
     final alarm = Alarm(
@@ -360,7 +361,7 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
       mission: _mission,
       mathDifficulty: _difficulty,
       mathQuestions: _questions,
-      qrValue: _qrValue,
+      memoryDigits: _memoryDigits,
       stepGoal: _steps,
       pushUpGoal: _pushUps,
       volume: _volume,

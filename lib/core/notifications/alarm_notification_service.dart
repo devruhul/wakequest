@@ -173,7 +173,7 @@ class AlarmNotificationService {
 
   String _missionName(MissionType mission) => switch (mission) {
     MissionType.math => 'math',
-    MissionType.qr => 'QR scan',
+    MissionType.memory => 'memory',
     MissionType.walking => 'walking',
     MissionType.pushUps => 'push-up',
   };

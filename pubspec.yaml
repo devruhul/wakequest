@@ -1,5 +1,5 @@
 name: wakequest
-description: "A new Flutter project."
+description: "A smart Android alarm clock with wake-up missions."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -42,10 +42,8 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   permission_handler: ^12.0.3
   google_fonts: ^8.1.0
-  mobile_scanner: ^7.2.0
   pedometer: ^4.2.0
   timezone: ^0.11.1
-  qr_flutter: ^4.1.0
   flutter_timezone: ^5.1.0
   camera: ^0.12.0+1
   google_mlkit_pose_detection: ^0.14.1

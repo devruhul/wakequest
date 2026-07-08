@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -78,8 +77,8 @@ class _RingingAlarmPageState extends ConsumerState<RingingAlarmPage> {
                           target: alarm.mathQuestions,
                           onComplete: () => _complete(context),
                         ),
-                        MissionType.qr => _QrMission(
-                          expected: alarm.qrValue!,
+                        MissionType.memory => _MemoryMission(
+                          digits: alarm.memoryDigits,
                           onComplete: () => _complete(context),
                         ),
                         MissionType.walking => _WalkingMission(
@@ -219,53 +218,114 @@ class _MathMissionState extends State<_MathMission> {
   );
 }
 
-class _QrMission extends StatefulWidget {
-  const _QrMission({required this.expected, required this.onComplete});
-  final String expected;
+class _MemoryMission extends StatefulWidget {
+  const _MemoryMission({required this.digits, required this.onComplete});
+  final int digits;
   final VoidCallback onComplete;
 
   @override
-  State<_QrMission> createState() => _QrMissionState();
+  State<_MemoryMission> createState() => _MemoryMissionState();
 }
 
-class _QrMissionState extends State<_QrMission> {
-  bool _foundWrongCode = false;
+class _MemoryMissionState extends State<_MemoryMission> {
+  final _answer = TextEditingController();
+  final _focusNode = FocusNode();
+  late final String _code;
+  Timer? _hideTimer;
+  bool _showCode = true;
   bool _completed = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final random = Random();
+    _code = List.generate(widget.digits, (_) => random.nextInt(10)).join();
+    _hideTimer = Timer(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      setState(() => _showCode = false);
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    _answer.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _check() {
+    if (_completed) return;
+    if (_answer.text.trim() == _code) {
+      _completed = true;
+      widget.onComplete();
+      return;
+    }
+    setState(() {
+      _error = 'Wrong code. Take a breath and try again.';
+      _answer.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Column(
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      const Text(
-        'Scan your WakeQuest code',
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-      ),
+      const Icon(Icons.psychology_rounded, size: 44),
       const SizedBox(height: 12),
-      Expanded(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: MobileScanner(
-            onDetect: (capture) {
-              if (_completed) return;
-              final matches = capture.barcodes.any(
-                (code) => code.rawValue == widget.expected,
-              );
-              if (matches) {
-                _completed = true;
-                widget.onComplete();
-              } else {
-                setState(() => _foundWrongCode = true);
-              }
-            },
-          ),
-        ),
-      ),
-      const SizedBox(height: 10),
       Text(
-        _foundWrongCode
-            ? 'That isn’t the code assigned to this alarm.'
-            : 'Point the camera at the code you placed earlier.',
+        _showCode ? 'Memorise this code' : 'Type the code from memory',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         textAlign: TextAlign.center,
       ),
+      const SizedBox(height: 20),
+      AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: _showCode
+            ? Container(
+                key: const ValueKey('code'),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  _code,
+                  style: const TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 8,
+                  ),
+                ),
+              )
+            : TextField(
+                key: const ValueKey('answer'),
+                controller: _answer,
+                focusNode: _focusNode,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _check(),
+                decoration: InputDecoration(
+                  labelText: '${widget.digits}-digit code',
+                  errorText: _error,
+                  prefixIcon: const Icon(Icons.lock_open_rounded),
+                ),
+              ),
+      ),
+      const SizedBox(height: 16),
+      if (!_showCode)
+        FilledButton(onPressed: _check, child: const Text('Unlock alarm'))
+      else
+        const Text(
+          'It will disappear in a moment.',
+          textAlign: TextAlign.center,
+        ),
     ],
   );
 }

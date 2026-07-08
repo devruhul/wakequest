@@ -1,4 +1,4 @@
-enum MissionType { math, qr, walking, pushUps }
+enum MissionType { math, memory, walking, pushUps }
 
 enum MathDifficulty { easy, medium, hard }
 
@@ -14,7 +14,7 @@ class Alarm {
     this.date,
     this.mathDifficulty = MathDifficulty.medium,
     this.mathQuestions = 5,
-    this.qrValue,
+    this.memoryDigits = 4,
     this.stepGoal = 100,
     this.pushUpGoal = 5,
     this.volume = 1,
@@ -32,7 +32,7 @@ class Alarm {
   final DateTime? date;
   final MathDifficulty mathDifficulty;
   final int mathQuestions;
-  final String? qrValue;
+  final int memoryDigits;
   final int stepGoal;
   final int pushUpGoal;
   final double volume;
@@ -51,7 +51,7 @@ class Alarm {
     DateTime? date,
     MathDifficulty? mathDifficulty,
     int? mathQuestions,
-    String? qrValue,
+    int? memoryDigits,
     int? stepGoal,
     int? pushUpGoal,
     double? volume,
@@ -68,7 +68,7 @@ class Alarm {
     date: date ?? this.date,
     mathDifficulty: mathDifficulty ?? this.mathDifficulty,
     mathQuestions: mathQuestions ?? this.mathQuestions,
-    qrValue: qrValue ?? this.qrValue,
+    memoryDigits: memoryDigits ?? this.memoryDigits,
     stepGoal: stepGoal ?? this.stepGoal,
     pushUpGoal: pushUpGoal ?? this.pushUpGoal,
     volume: volume ?? this.volume,
@@ -87,7 +87,7 @@ class Alarm {
     'date': date?.toIso8601String(),
     'mathDifficulty': mathDifficulty.name,
     'mathQuestions': mathQuestions,
-    'qrValue': qrValue,
+    'memoryDigits': memoryDigits,
     'stepGoal': stepGoal,
     'pushUpGoal': pushUpGoal,
     'volume': volume,
@@ -102,13 +102,13 @@ class Alarm {
     label: map['label'] as String? ?? 'Wake up',
     enabled: map['enabled'] as bool? ?? true,
     repeatDays: Set<int>.from(map['repeatDays'] as Iterable? ?? const []),
-    mission: MissionType.values.byName(map['mission'] as String? ?? 'math'),
+    mission: _missionFromName(map['mission'] as String?),
     date: map['date'] == null ? null : DateTime.tryParse(map['date'] as String),
     mathDifficulty: MathDifficulty.values.byName(
       map['mathDifficulty'] as String? ?? 'medium',
     ),
     mathQuestions: map['mathQuestions'] as int? ?? 5,
-    qrValue: map['qrValue'] as String?,
+    memoryDigits: map['memoryDigits'] as int? ?? 4,
     stepGoal: map['stepGoal'] as int? ?? 100,
     pushUpGoal: map['pushUpGoal'] as int? ?? 5,
     volume: (map['volume'] as num?)?.toDouble() ?? 1,
@@ -116,3 +116,13 @@ class Alarm {
     flash: map['flash'] as bool? ?? false,
   );
 }
+
+MissionType _missionFromName(String? value) => switch (value) {
+  'memory' => MissionType.memory,
+  'walking' => MissionType.walking,
+  'pushUps' => MissionType.pushUps,
+  // Older WakeQuest builds had a QR mission. Convert those alarms to the new
+  // no-printing-needed memory mission instead of failing to load local data.
+  'qr' => MissionType.memory,
+  _ => MissionType.math,
+};
