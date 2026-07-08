@@ -1,4 +1,4 @@
-enum MissionType { math, qr, walking }
+enum MissionType { math, qr, walking, pushUps }
 
 enum MathDifficulty { easy, medium, hard }
 
@@ -16,6 +16,7 @@ class Alarm {
     this.mathQuestions = 5,
     this.qrValue,
     this.stepGoal = 100,
+    this.pushUpGoal = 5,
     this.volume = 1,
     this.vibrate = true,
     this.flash = false,
@@ -33,6 +34,7 @@ class Alarm {
   final int mathQuestions;
   final String? qrValue;
   final int stepGoal;
+  final int pushUpGoal;
   final double volume;
   final bool vibrate;
   final bool flash;
@@ -51,6 +53,7 @@ class Alarm {
     int? mathQuestions,
     String? qrValue,
     int? stepGoal,
+    int? pushUpGoal,
     double? volume,
     bool? vibrate,
     bool? flash,
@@ -67,6 +70,7 @@ class Alarm {
     mathQuestions: mathQuestions ?? this.mathQuestions,
     qrValue: qrValue ?? this.qrValue,
     stepGoal: stepGoal ?? this.stepGoal,
+    pushUpGoal: pushUpGoal ?? this.pushUpGoal,
     volume: volume ?? this.volume,
     vibrate: vibrate ?? this.vibrate,
     flash: flash ?? this.flash,
@@ -85,6 +89,7 @@ class Alarm {
     'mathQuestions': mathQuestions,
     'qrValue': qrValue,
     'stepGoal': stepGoal,
+    'pushUpGoal': pushUpGoal,
     'volume': volume,
     'vibrate': vibrate,
     'flash': flash,
@@ -105,6 +110,7 @@ class Alarm {
     mathQuestions: map['mathQuestions'] as int? ?? 5,
     qrValue: map['qrValue'] as String?,
     stepGoal: map['stepGoal'] as int? ?? 100,
+    pushUpGoal: map['pushUpGoal'] as int? ?? 5,
     volume: (map['volume'] as num?)?.toDouble() ?? 1,
     vibrate: map['vibrate'] as bool? ?? true,
     flash: map['flash'] as bool? ?? false,

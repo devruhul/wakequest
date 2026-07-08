@@ -24,6 +24,7 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
   MathDifficulty _difficulty = MathDifficulty.medium;
   int _questions = 5;
   int _steps = 100;
+  int _pushUps = 5;
   double _volume = 1;
   bool _vibrate = true;
   bool _flash = false;
@@ -48,6 +49,7 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
       _difficulty = alarm.mathDifficulty;
       _questions = alarm.mathQuestions;
       _steps = alarm.stepGoal;
+      _pushUps = alarm.pushUpGoal;
       _volume = alarm.volume;
       _vibrate = alarm.vibrate;
       _flash = alarm.flash;
@@ -133,27 +135,33 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
           const SizedBox(height: 24),
           const _SectionTitle('Wake-up mission'),
           const SizedBox(height: 10),
-          SegmentedButton<MissionType>(
-            segments: const [
-              ButtonSegment(
-                value: MissionType.math,
-                icon: Icon(Icons.calculate_rounded),
-                label: Text('Math'),
-              ),
-              ButtonSegment(
-                value: MissionType.qr,
-                icon: Icon(Icons.qr_code_rounded),
-                label: Text('QR'),
-              ),
-              ButtonSegment(
-                value: MissionType.walking,
-                icon: Icon(Icons.directions_walk_rounded),
-                label: Text('Walk'),
-              ),
-            ],
-            selected: {_mission},
-            onSelectionChanged: (value) =>
-                setState(() => _mission = value.first),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children:
+                const [
+                      (MissionType.math, Icons.calculate_rounded, 'Math'),
+                      (MissionType.qr, Icons.qr_code_rounded, 'QR'),
+                      (
+                        MissionType.walking,
+                        Icons.directions_walk_rounded,
+                        'Walk',
+                      ),
+                      (
+                        MissionType.pushUps,
+                        Icons.fitness_center_rounded,
+                        'Push-ups',
+                      ),
+                    ]
+                    .map(
+                      (item) => ChoiceChip(
+                        avatar: Icon(item.$2, size: 18),
+                        label: Text(item.$3),
+                        selected: _mission == item.$1,
+                        onSelected: (_) => setState(() => _mission = item.$1),
+                      ),
+                    )
+                    .toList(),
           ),
           const SizedBox(height: 16),
           _missionOptions(),
@@ -278,6 +286,51 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
         ),
       ],
     ),
+    MissionType.pushUps => Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'AI Push-up Mission',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                Chip(
+                  label: const Text('Experimental'),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.tertiaryContainer,
+                ),
+              ],
+            ),
+            const Text(
+              'Place the phone side-on so your shoulders, elbows and wrists '
+              'stay visible. Processing happens on this device.',
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              initialValue: _pushUps,
+              decoration: const InputDecoration(labelText: 'Repetitions'),
+              items: const [5, 10, 20]
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text('$value push-ups'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => _pushUps = value ?? _pushUps),
+            ),
+          ],
+        ),
+      ),
+    ),
   };
 
   Future<void> _pickTime() async {
@@ -309,6 +362,7 @@ class _AlarmEditorPageState extends ConsumerState<AlarmEditorPage> {
       mathQuestions: _questions,
       qrValue: _qrValue,
       stepGoal: _steps,
+      pushUpGoal: _pushUps,
       volume: _volume,
       vibrate: _vibrate,
       flash: _flash,

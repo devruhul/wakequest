@@ -256,10 +256,12 @@ String _missionLabel(MissionType mission) => switch (mission) {
   MissionType.math => 'Math mission',
   MissionType.qr => 'QR mission',
   MissionType.walking => 'Walking mission',
+  MissionType.pushUps => 'Push-up mission',
 };
 
 IconData _missionIcon(MissionType mission) => switch (mission) {
   MissionType.math => Icons.calculate_rounded,
   MissionType.qr => Icons.qr_code_scanner_rounded,
   MissionType.walking => Icons.directions_walk_rounded,
+  MissionType.pushUps => Icons.fitness_center_rounded,
 };

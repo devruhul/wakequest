@@ -175,5 +175,6 @@ class AlarmNotificationService {
     MissionType.math => 'math',
     MissionType.qr => 'QR scan',
     MissionType.walking => 'walking',
+    MissionType.pushUps => 'push-up',
   };
 }

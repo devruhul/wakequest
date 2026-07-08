@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../core/models/alarm.dart';
 import '../../core/notifications/native_alarm_player.dart';
 import '../../core/state/app_controller.dart';
+import 'push_up_mission.dart';
 
 class RingingAlarmPage extends ConsumerStatefulWidget {
   const RingingAlarmPage({super.key, required this.alarmId});
@@ -83,6 +84,10 @@ class _RingingAlarmPageState extends ConsumerState<RingingAlarmPage> {
                         ),
                         MissionType.walking => _WalkingMission(
                           target: alarm.stepGoal,
+                          onComplete: () => _complete(context),
+                        ),
+                        MissionType.pushUps => PushUpMission(
+                          target: alarm.pushUpGoal,
                           onComplete: () => _complete(context),
                         ),
                       },
